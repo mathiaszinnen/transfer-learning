@@ -12,7 +12,6 @@ from fastai.callback.wandb import *
 
 import torch
 import argparse
-import os
 
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
