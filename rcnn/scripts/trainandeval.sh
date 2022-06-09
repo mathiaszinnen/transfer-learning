@@ -1,3 +1,7 @@
+#!/bin/bash
+
+source /net/cluster/zinnen/miniconda/etc/profile.d/conda.sh
+conda activate artworks-object-detection
 
 NAME=skript
 IMGS=/net/cluster/shared_dataset/ODOR/public/images
