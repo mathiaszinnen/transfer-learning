@@ -3,7 +3,7 @@ NAME=skript
 IMGS=/net/cluster/shared_dataset/ODOR/public/images
 TRAIN_COCO=/net/cluster/shared_dataset/ODOR/public/annotations_train.json
 VALID_COCO=/net/cluster/shared_dataset/ODOR/public/annotations_valid.json
-CHECKPOINT=skript
+CHECKPOINT=../skript
 BATCH_SIZE=32
 LR=0.001
 TRAIN_EPOCHS=1
@@ -29,6 +29,7 @@ python ../test.py \
 --imgs $TEST_IMGS \
 --test_coco $TEST_COCO \
 --load_checkpoint $CHECKPOINT \
---batch_size $BATCH_SIZE
+--batch_size $BATCH_SIZE \
+| tee ../results/${NAME}_results.txt
 
 echo "MODEL EVALUATED"

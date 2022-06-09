@@ -28,7 +28,6 @@ def main(args):
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    wandb.init(name=args.name, reinit=True)
 
     num_finetune_classes = len(train_parser.class_map)
     model_type = models.torchvision.faster_rcnn
@@ -56,7 +55,7 @@ def main(args):
     valid_dl = model_type.valid_dl(valid_ds, batch_size=args.batch_size, num_workers=4, shuffle=False)
 
     metrics = [COCOMetric(metric_type=COCOMetricType.bbox)]
-    learn = model_type.fastai.learner(dls=[train_dl, valid_dl], model=model, metrics=metrics, cbs=[CSVLogger(fname=f'{args.name}_losslog.csv'),WandbCallback,ReduceLROnPlateau(monitor='valid_loss', min_delta=0.1, patience=2)])
+    learn = model_type.fastai.learner(dls=[train_dl, valid_dl], model=model, metrics=metrics, cbs=[CSVLogger(fname=f'{args.name}_losslog.csv'),ReduceLROnPlateau(monitor='valid_loss', min_delta=0.1, patience=2)])
 
     learn.fine_tune(args.train_epochs, args.lr, freeze_epochs=args.freeze_epochs)
 
