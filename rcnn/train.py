@@ -28,7 +28,6 @@ def main(args):
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    os.makedirs(args.name)
     wandb.init(name=args.name, reinit=True)
 
     num_finetune_classes = len(train_parser.class_map)
