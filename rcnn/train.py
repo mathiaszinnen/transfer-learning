@@ -1,4 +1,5 @@
 from fastai.callback.progress import CSVLogger
+from fastai.callback.tracker import ReduceLROnPlateau
 from icevision import parsers
 from icevision.data.data_splitter import SingleSplitSplitter
 from icevision import tfms
