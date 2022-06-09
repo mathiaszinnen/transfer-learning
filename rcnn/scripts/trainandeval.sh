@@ -3,7 +3,9 @@
 source /net/cluster/zinnen/miniconda/etc/profile.d/conda.sh
 conda activate artworks-object-detection
 
-NAME=skript
+N_RUN=$1
+
+NAME=skript-${N_RUN}
 IMGS=/net/cluster/shared_dataset/ODOR/public/images
 TRAIN_COCO=/net/cluster/shared_dataset/ODOR/public/annotations_train.json
 VALID_COCO=/net/cluster/shared_dataset/ODOR/public/annotations_valid.json
