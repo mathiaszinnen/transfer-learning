@@ -1,5 +1,6 @@
 import argparse
 import torch
+from fastai.callback.progress import CSVLogger
 
 from icevision import parsers
 from icevision.data.data_splitter import SingleSplitSplitter
@@ -37,6 +38,7 @@ def main(args):
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
 
+    argparser.add_argument('--name', type=str, help='experiment name for logs')
     argparser.add_argument('--imgs', type=str, help='path to images dir')
     argparser.add_argument('--img_size', type=int, help='image size to resize to', default=384)
     argparser.add_argument('--test_coco', type=str, help='path to testset annotations in coco format')

@@ -1,3 +1,4 @@
+from fastai.callback.progress import CSVLogger
 from icevision import parsers
 from icevision.data.data_splitter import SingleSplitSplitter
 from icevision import tfms
@@ -5,9 +6,12 @@ from icevision import models
 from icevision.data import Dataset
 from icevision.metrics import COCOMetric, COCOMetricType
 
+import wandb
+from fastai.callback.wandb import *
 
 import torch
 import argparse
+import os
 
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
@@ -22,6 +26,9 @@ def main(args):
     valid_tfms = tfms.A.Adapter([*tfms.A.resize_and_pad(args.img_size), tfms.A.Normalize()])
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+    os.makedirs(args.name)
+    wandb.init(name=args.name, reinit=True)
 
     num_finetune_classes = len(train_parser.class_map)
     model_type = models.torchvision.faster_rcnn
@@ -49,7 +56,7 @@ def main(args):
     valid_dl = model_type.valid_dl(valid_ds, batch_size=args.batch_size, num_workers=4, shuffle=False)
 
     metrics = [COCOMetric(metric_type=COCOMetricType.bbox)]
-    learn = model_type.fastai.learner(dls=[train_dl, valid_dl], model=model, metrics=metrics)
+    learn = model_type.fastai.learner(dls=[train_dl, valid_dl], model=model, metrics=metrics, cbs=[CSVLogger(fname=f'{args.name}/losslog.csv'),WandbCallback,ReduceLROnPlateau(monitor='valid_loss', min_delta=0.1, patience=2)])
 
     learn.fine_tune(args.train_epochs, args.lr, freeze_epochs=args.freeze_epochs)
 
@@ -61,6 +68,7 @@ def main(args):
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
 
+    argparser.add_argument('--name', type=str, help='experiment name for logs')
     argparser.add_argument('--imgs', type=str, help='path to images dir (train/valid)')
     argparser.add_argument('--img_size', type=int, help='image size to resize to', default=384)
     argparser.add_argument('--train_coco', type=str, help='path to train annotations in coco format')
