@@ -57,7 +57,7 @@ def main(args):
     valid_dl = model_type.valid_dl(valid_ds, batch_size=args.batch_size, num_workers=4, shuffle=False)
 
     metrics = [COCOMetric(metric_type=COCOMetricType.bbox)]
-    learn = model_type.fastai.learner(dls=[train_dl, valid_dl], model=model, metrics=metrics, cbs=[CSVLogger(fname=f'{args.name}_losslog.csv'),ReduceLROnPlateau(monitor='valid_loss', min_delta=0.1, patience=2)])
+    learn = model_type.fastai.learner(dls=[train_dl, valid_dl], model=model, metrics=metrics, cbs=[CSVLogger(fname=f'losslogs/{args.name}_losslog.csv'),ReduceLROnPlateau(monitor='valid_loss', min_delta=0.1, patience=2)])
 
     learn.fine_tune(args.train_epochs, args.lr, freeze_epochs=args.freeze_epochs)
 

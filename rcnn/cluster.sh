@@ -79,6 +79,6 @@ python ../test.py \
 --test_coco $TEST_COCO \
 --load_checkpoint $CHECKPOINT \
 --batch_size $BATCH_SIZE \
-| tee ../results/${NAME}_results.txt
+| tee results/${NAME}_results.txt
 
 echo "MODEL EVALUATED"
