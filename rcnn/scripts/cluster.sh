@@ -28,9 +28,26 @@ else
 fi
 
 N_RUN=$1
+PRETRAINING_DS=$2
 
-PRETRAIN_MODEL=/net/cluster/zinnen/models/openimages_100ep-final-0.pth
-NAME=ia_oi-${N_RUN}
+case ${PRETRAINING_DS} in
+	oi)
+		PRETRAIN_MODEL=/net/cluster/zinnen/models/openimages_100ep-final-0.pth
+		;;
+	ia)
+		PRETRAIN_MODEL=/net/cluster/zinnen/models/iconart_0.pth
+		;;
+	pa)
+		PRETRAIN_MODEL=/net/cluster/zinnen/models/peopleart_20ep-final-0.pth
+		;;
+	none)
+		PRETRAIN_MODEL=none
+		;;
+esac
+
+
+
+NAME=${PRETRAINING_DS}_odor-${N_RUN}
 IMGS=$TMPDIR/images
 TRAIN_COCO=/net/cluster/shared_dataset/ODOR/public/annotations_trainvalid.json
 VALID_COCO=/net/cluster/shared_dataset/ODOR/public/annotations_valid.json
@@ -49,7 +66,8 @@ python ../train.py \
 --lr $LR \
 --train_epochs $TRAIN_EPOCHS \
 --freeze_epochs $FREEZE_EPOCHS \
---save_checkpoint $CHECKPOINT
+--save_checkpoint $CHECKPOINT \
+--load_model $PRETRAIN_MODEL
 
 echo "MODEL TRAINED"
 
