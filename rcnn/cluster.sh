@@ -67,7 +67,7 @@ python train.py \
 --train_epochs $TRAIN_EPOCHS \
 --freeze_epochs $FREEZE_EPOCHS \
 --save_checkpoint $CHECKPOINT \
---load_model $PRETRAIN_MODEL
+--load_checkpoint $PRETRAIN_MODEL
 
 echo "MODEL TRAINED"
 
