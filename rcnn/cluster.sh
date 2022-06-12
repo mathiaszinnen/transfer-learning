@@ -27,8 +27,8 @@ else
 	cp -r $FINETUNE_PTH $TMPDIR
 fi
 
-N_RUN=$1
-PRETRAINING_DS=$2
+N_RUN=$2
+PRETRAINING_DS=$1
 
 case ${PRETRAINING_DS} in
 	oi)
@@ -57,7 +57,7 @@ LR=0.001
 TRAIN_EPOCHS=100
 FREEZE_EPOCHS=10
 
-python ../train.py \
+python train.py \
 --name $NAME \
 --imgs $IMGS \
 --train_coco $TRAIN_COCO \
@@ -74,7 +74,7 @@ echo "MODEL TRAINED"
 TEST_COCO=/net/cluster/shared_dataset/ODOR/private/annotations_test.json
 TEST_IMGS=/net/cluster/shared_dataset/ODOR/private/images
 
-python ../test.py \
+python test.py \
 --imgs $TEST_IMGS \
 --test_coco $TEST_COCO \
 --load_checkpoint $CHECKPOINT \
