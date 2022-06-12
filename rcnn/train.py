@@ -31,6 +31,9 @@ def main(args):
     num_finetune_classes = len(train_parser.class_map)
     model_type = models.torchvision.faster_rcnn
     model = model_type.model(num_classes=num_finetune_classes)
+    
+    if args.load_checkpoint == 'none':
+        args.load_checkpoint = None
 
     if args.load_checkpoint is not None:
         # determine number of classes for the old model

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-source /net/cluster/zinnen/miniconda/etc/profile.d/conda.sh
+	source /net/cluster/zinnen/miniconda/etc/profile.d/conda.sh
 conda activate artworks-object-detection
 
 N_RUN=$1
 
 NAME=skript-${N_RUN}
 IMGS=/net/cluster/shared_dataset/ODOR/public/images
-TRAIN_COCO=/net/cluster/shared_dataset/ODOR/public/annotations_train.json
+TRAIN_COCO=/net/cluster/shared_dataset/ODOR/public/annotations_trainvalid.json
 VALID_COCO=/net/cluster/shared_dataset/ODOR/public/annotations_valid.json
 CHECKPOINT=../{$NAME}
 BATCH_SIZE=32
