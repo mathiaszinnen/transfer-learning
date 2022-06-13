@@ -40,6 +40,15 @@ case ${PRETRAINING_DS} in
 	pa)
 		PRETRAIN_MODEL=/net/cluster/zinnen/models/peopleart_20ep-final-0.pth
 		;;
+	soi)
+		PRETRAIN_MODEL=/net/cluster/zinnen/detectors/transfer-learning/rcnn/soi-1.pth
+		;;
+	sia)
+		PRETRAIN_MODEL=/net/cluster/zinnen/detectors/transfer-learning/rcnn/sia-1.pth
+		;;
+	spa)
+		PRETRAIN_MODEL=/net/cluster/zinnen/detectors/transfer-learning/rcnn/spa-1.pth
+		;;
 	none)
 		PRETRAIN_MODEL=none
 		;;
