@@ -45,7 +45,10 @@ class Trainer:
             save_model_pth: str,
             load_model_pth: str,
     ) -> None:
-        self.gpu_id = int(os.environ["LOCAL_RANK"])
+        if is_distributed():
+            self.gpu_id = int(os.environ["LOCAL_RANK"])
+        else:
+            self.gpu_id = 0
         self.model = model.to(self.gpu_id)
         self.train_data = train_data
         self.optimizer = optimizer
