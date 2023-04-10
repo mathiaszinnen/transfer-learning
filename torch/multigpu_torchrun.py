@@ -67,6 +67,8 @@ class Trainer:
             self._run_batch(source, targets)
 
     def _save_snapshot(self, epoch):
+        if self.gpu_id != 0:
+            return
         snapshot = {
             "MODEL_STATE": self.model.module.state_dict(),
             "EPOCHS_RUN": epoch,
@@ -78,7 +80,7 @@ class Trainer:
     def train(self, max_epochs: int):
         for epoch in range(self.epochs_run + 1, max_epochs + 1):
             self._run_epoch(epoch)
-            if self.gpu_id == 0 and epoch % self.save_every == 0:
+            if epoch % self.save_every == 0:
                 self._save_snapshot(epoch)
         self._save_snapshot(epoch)
 
