@@ -112,8 +112,8 @@ if __name__ == "__main__":
     parser.add_argument('total_epochs', type=int, help='Total epochs to train the model')
     parser.add_argument('save_every', type=int, help='How often to save a snapshot')
     parser.add_argument('--batch_size', default=32, type=int, help='Input batch size on each device (default: 32)')
-    parser.add_argument('--train_imgs', type=str, help='Path to folder containing training images')
-    parser.add_argument('--train_anns', type=str, help='Path to training annotations file')
+    parser.add_argument('--train_imgs', default=None, type=str, help='Path to folder containing training images')
+    parser.add_argument('--train_anns', default=None, type=str, help='Path to training annotations file')
     parser.add_argument('--output_model_pth', default='snapshot.pth' ,type=str, help='Where to save the trained model')
     args = parser.parse_args()
     
