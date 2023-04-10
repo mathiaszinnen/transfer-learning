@@ -43,7 +43,7 @@ def main(args):
         # create new model
         model = model_type.model(num_classes=num_pretrain_classes)
         model.load_state_dict(pretrained_model)
-
+()
         if num_pretrain_classes != num_finetune_classes:
             # throw away the old detection head to match number of new classes
             in_features = model.roi_heads.box_predictor.cls_score.in_features
