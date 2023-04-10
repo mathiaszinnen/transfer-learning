@@ -119,7 +119,8 @@ def prepare_dataloader(dataset: Dataset, batch_size: int):
 
 
 def main(save_every: int, total_epochs: int, batch_size: int, train_imgs, train_anns, output_model_pth, load_model_pth):
-    # ddp_setup()
+    if is_distributed():
+        ddp_setup()
     dataset, model, optimizer = load_train_objs(train_imgs, train_anns)
     train_data = prepare_dataloader(dataset, batch_size)
     trainer = Trainer(model, train_data, optimizer, save_every, output_model_pth, load_model_pth)
