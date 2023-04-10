@@ -1,11 +1,16 @@
 """
 Based on https://github.com/pytorch/examples/tree/main/distributed/ddp-tutorial-series
 """
+import math
+import sys
 
 import torch
 import torch.nn.functional as F
+import torchvision.models.detection
 from torch.utils.data import Dataset, DataLoader
-from data.odor_dataset import ODORDataset
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+
+from data.odor_dataset import get_dataset
 from data.example_dataset import MyTrainDataset
 
 import torch.multiprocessing as mp
@@ -15,6 +20,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 import os
 from os.path import splitext
+from tqdm import tqdm
 
 
 def ddp_setup():
@@ -62,9 +68,11 @@ class Trainer:
 
     def _run_batch(self, source, targets):
         self.optimizer.zero_grad()
-        output = self.model(source)
-        loss = F.cross_entropy(output, targets)
-        loss.backward()
+        loss_dict = self.model(source, targets)
+        losses = sum(loss for loss in loss_dict.values())
+
+        self.optimizer.zero_grad()
+        losses.backward()
         self.optimizer.step()
 
     def _run_epoch(self, epoch):
@@ -72,8 +80,8 @@ class Trainer:
         print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {len(self.train_data)}")
         if is_distributed():
             self.train_data.sampler.set_epoch(epoch)
-        for source, targets in self.train_data:
-            source = source.to(self.gpu_id)
+        for source, targets in tqdm(self.train_data):
+            source = [img.to(self.gpu_id) for img in source]
             targets = [{k: v.to(self.gpu_id) for k, v in t.items()} for t in targets]
             self._run_batch(source, targets)
 
@@ -96,12 +104,14 @@ class Trainer:
         self._save_snapshot(epoch)
 
 
-def load_train_objs(img_root, annFile):
-    train_set = ODORDataset(img_root=img_root, annFile=annFile)  # load your dataset
-    # train_set = MyTrainDataset(2048)
-    model = torch.nn.Linear(20, 1)  # load your model
+def load_model(num_classes):
+    # model = torch.nn.Linear(20, 1)  # load your model
+    model = torchvision.models.detection.fasterrcnn_resnet50_fpn_v2(weights="DEFAULT")
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
-    return train_set, model, optimizer
+
+    return model, optimizer
 
 
 def prepare_dataloader(dataset: Dataset, batch_size: int):
@@ -114,18 +124,21 @@ def prepare_dataloader(dataset: Dataset, batch_size: int):
         batch_size=batch_size,
         pin_memory=True,
         shuffle=False,
-        sampler=sampler
+        sampler=sampler,
+        collate_fn=lambda batch: tuple(zip(*batch))
     )
 
 
 def main(save_every: int, total_epochs: int, batch_size: int, train_imgs, train_anns, output_model_pth, load_model_pth):
     if is_distributed():
         ddp_setup()
-    dataset, model, optimizer = load_train_objs(train_imgs, train_anns)
+    dataset = get_dataset(train_imgs, train_anns)
+    model, optimizer = load_model(dataset.num_classes)
     train_data = prepare_dataloader(dataset, batch_size)
     trainer = Trainer(model, train_data, optimizer, save_every, output_model_pth, load_model_pth)
     trainer.train(total_epochs)
-    destroy_process_group()
+    if is_distributed():
+        destroy_process_group()
 
 
 if __name__ == "__main__":
