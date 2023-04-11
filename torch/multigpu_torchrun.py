@@ -78,7 +78,7 @@ class Trainer:
         losses.backward()
         self.optimizer.step()
 
-        return loss_dict
+        return loss_dict, losses
 
     def _run_epoch(self, epoch):
         b_sz = len(next(iter(self.train_data))[0])
@@ -87,13 +87,14 @@ class Trainer:
         for i, (source, targets) in enumerate(self.train_data):
             source = [img.to(self.gpu_id) for img in source]
             targets = [{k: v.to(self.gpu_id) for k, v in t.items()} for t in targets]
-            loss_dict = self._run_batch(source, targets)
+            loss_dict, losses = self._run_batch(source, targets)
             if i % 500 == 0:
                 print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {i} | "
-                      f"CLS loss: {loss_dict['loss_classifier']} | "
-                      f"BOX loss: {loss_dict['loss_box_reg']} | "
-                      f"OBJ loss: {loss_dict['loss_objectness']} | "
-                      f"RPN loss: {loss_dict['loss_rpn_box_reg']}")
+                      f"Loss: {losses:.4f} | "
+                      f"CLS loss: {loss_dict['loss_classifier']:.4f} | "
+                      f"BOX loss: {loss_dict['loss_box_reg']:.4f} | "
+                      f"OBJ loss: {loss_dict['loss_objectness']:.4f} | "
+                      f"RPN loss: {loss_dict['loss_rpn_box_reg']:.4f}")
 
     def _save_snapshot(self, epoch):
         if self.gpu_id != 0:
