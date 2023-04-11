@@ -84,12 +84,13 @@ class Trainer:
         b_sz = len(next(iter(self.train_data))[0])
         if is_distributed():
             self.train_data.sampler.set_epoch(epoch)
-        for i, (source, targets) in enumerate(self.train_data):
+        for batch_n, (source, targets) in enumerate(self.train_data):
+            iteration = batch_n * b_sz
             source = [img.to(self.gpu_id) for img in source]
             targets = [{k: v.to(self.gpu_id) for k, v in t.items()} for t in targets]
             loss_dict, losses = self._run_batch(source, targets)
-            if i % 500 == 0:
-                print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {i} | "
+            if batch_n % 10 == 0:
+                print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {iteration} | "
                       f"Loss: {losses:.4f} | "
                       f"CLS loss: {loss_dict['loss_classifier']:.4f} | "
                       f"BOX loss: {loss_dict['loss_box_reg']:.4f} | "
