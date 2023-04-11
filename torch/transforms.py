@@ -22,13 +22,13 @@ import torch
 class RandomHorizontalFlip(T.RandomHorizontalFlip):
     def __call__(self, img, target):
         img = super().forward(img)
-        return img, torch.clone(target)
+        return img, target
 
 
 class RandomGrayscale(T.RandomGrayscale):
     def __call__(self, img, target):
         img = super().forward(img)
-        return img, torch.clone(target)
+        return img, target
 
 
 class ConvertImageDtype(nn.Module):
