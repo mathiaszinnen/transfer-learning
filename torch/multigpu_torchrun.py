@@ -121,13 +121,13 @@ class Trainer:
         self._save_snapshot(epoch)
 
 
-def load_model(num_classes):
+def load_model(num_classes, lr):
     # model = torch.nn.Linear(20, 1)  # load your model
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn_v2(weights="DEFAULT")
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
     return model, optimizer
 
@@ -153,13 +153,13 @@ def wandb_setup():
 
 
 def main(save_every: int, total_epochs: int, batch_size: int, train_imgs, train_anns,
-         output_model_pth, load_model_pth, log_interval):
+         output_model_pth, load_model_pth, log_interval, lr):
     if is_distributed():
         ddp_setup()
     wandb_setup()
     dataset = get_dataset(train_imgs, train_anns)
     print(f"Dataset with {len(dataset)} instances loaded")
-    model, optimizer = load_model(dataset.num_classes)
+    model, optimizer = load_model(dataset.num_classes, lr)
     train_data = prepare_dataloader(dataset, batch_size)
     trainer = Trainer(model, train_data, optimizer, save_every, output_model_pth, load_model_pth, log_interval)
     trainer.train(total_epochs)
@@ -179,7 +179,8 @@ if __name__ == "__main__":
     parser.add_argument('--output_model_pth', default='snapshot.pth', type=str, help='Where to save the trained model')
     parser.add_argument('--load_model_pth', default=None, type=str, help='Path to checkpoint to continue training from')
     parser.add_argument('--log_interval', default=1, type=int, help='Log losses every N batches')
+    parser.add_argument('--lr', default=1e-4, type=float, help='Initial learning rate.')
     args = parser.parse_args()
 
     main(args.save_every, args.total_epochs, args.batch_size, args.train_imgs, args.train_anns,
-         args.output_model_pth, args.load_model_pth, args.log_interval)
+         args.output_model_pth, args.load_model_pth, args.log_interval, args.lr)
