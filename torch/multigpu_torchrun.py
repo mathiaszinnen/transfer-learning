@@ -92,7 +92,7 @@ class Trainer:
             iteration = batch_n * b_sz
             source = [img.to(self.gpu_id) for img in source]
             targets = [{k: v.to(self.gpu_id) for k, v in t.items()} for t in targets]
-            loss_dict, losses = self._run_batch(source, targets)
+            loss_dict = self._run_batch(source, targets)
             if batch_n % self.log_interval == 0:
                 wandb.log(loss_dict)
                 print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {iteration} | "
