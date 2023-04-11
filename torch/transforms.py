@@ -1,17 +1,34 @@
+"""
+Based on https://github.com/pytorch/vision/blob/292117405af46e1cdbf2f9ec6eb4752d276bbbb6/references/detection/transforms.py
+Wrapping all used transforms to have image and target parameters for now. There should be a more elegant solution though.
+"""
+
 from typing import Optional, Dict, Tuple
 
 from torch import nn, Tensor
 from torchvision.transforms import functional as F, transforms as T
 import torch
 
+#
+# class ApplyOnImage(nn.Module):
+#     def __init__(self, transform):
+#         super().__init__()
+#         self.transform = transform
+#
+#     def __call__(self, image, target):
+#         return self.transform(image), target
 
-class ApplyOnImage(nn.Module):
-    def __init__(self, transform):
-        super().__init__()
-        self.transform = transform
 
-    def __call__(self, image, target):
-        return self.transform(image), target
+class RandomHorizontalFlip(T.RandomHorizontalFlip):
+    def forward(self, img, target):
+        img = super().forward(img)
+        return img, target
+
+
+class RandomGrayscale(T.RandomGrayscale):
+    def forward(self, img, target):
+        img = super().forward(img)
+        return img, target
 
 
 class ConvertImageDtype(nn.Module):
@@ -98,6 +115,6 @@ def get_train_transforms(hflip_prob=.5, gs_prob=.1):
         PILToTensor(),
         ResizeImg(),
         ConvertImageDtype(torch.float),
-        ApplyOnImage(T.RandomHorizontalFlip(p=hflip_prob)),
-        ApplyOnImage(T.RandomGrayscale(p=gs_prob))
+        RandomHorizontalFlip(p=hflip_prob),
+        RandomGrayscale(p=gs_prob)
     ])
