@@ -121,7 +121,8 @@ def load_model(num_classes):
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn_v2(weights="DEFAULT")
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 
     return model, optimizer
 
