@@ -153,21 +153,12 @@ def wandb_setup():
     wandb.init(project='Transfer-Learning')
 
 
-def get_train_transforms():
-    return transforms.Compose([
-        transforms.ConvertCOCOTargets(),
-        transforms.PILToTensor(),
-        transforms.ResizeImg(),
-        transforms.ConvertImageDtype(torch.float)
-    ])
-
-
 def main(save_every: int, total_epochs: int, batch_size: int, train_imgs, train_anns,
          output_model_pth, load_model_pth, log_interval, lr):
     if is_distributed():
         ddp_setup()
     wandb_setup()
-    train_ts = get_train_transforms()
+    train_ts = transforms.get_train_transforms()
     dataset = get_dataset(train_imgs, train_anns, train_ts)
     print(f"Dataset with {len(dataset)} instances loaded")
     model, optimizer = load_model(dataset.num_classes, lr)

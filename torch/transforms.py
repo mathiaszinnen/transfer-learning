@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Tuple
 
 from torch import nn, Tensor
-from torchvision.transforms import functional as F
+from torchvision.transforms import functional as F, transforms as T
 import torch
 
 
@@ -81,3 +81,14 @@ class ConvertCOCOTargets(nn.Module):
         target["iscrowd"] = iscrowd
 
         return image, target
+
+
+def get_train_transforms(hflip_prob=.5, gs_prob=.1):
+    return Compose([
+        ConvertCOCOTargets(),
+        PILToTensor(),
+        ResizeImg(),
+        ConvertImageDtype(torch.float),
+        T.RandomHorizontalFlip(p=hflip_prob),
+        T.RandomGrayscale(p=gs_prob)
+    ])

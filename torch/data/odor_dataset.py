@@ -1,10 +1,4 @@
-from typing import Tuple, Optional, Dict
-
-import torch
 import torchvision
-from torchvision.transforms import functional as F
-from torch import Tensor, nn
-
 
 
 class CocoDataset(torchvision.datasets.CocoDetection):
