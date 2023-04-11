@@ -95,12 +95,12 @@ class Trainer:
             loss_dict = self._run_batch(source, targets)
             if batch_n % self.log_interval == 0:
                 wandb.log(loss_dict)
-                print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {iteration} | "
-                      f"Loss: {loss_dict['all']:.4f} | "
-                      f"CLS loss: {loss_dict['loss_classifier']:.4f} | "
-                      f"BOX loss: {loss_dict['loss_box_reg']:.4f} | "
-                      f"OBJ loss: {loss_dict['loss_objectness']:.4f} | "
-                      f"RPN loss: {loss_dict['loss_rpn_box_reg']:.4f}")
+                # print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {iteration} | "
+                #       f"Loss: {loss_dict['all']:.4f} | "
+                #       f"CLS loss: {loss_dict['loss_classifier']:.4f} | "
+                #       f"BOX loss: {loss_dict['loss_box_reg']:.4f} | "
+                #       f"OBJ loss: {loss_dict['loss_objectness']:.4f} | "
+                #       f"RPN loss: {loss_dict['loss_rpn_box_reg']:.4f}")
 
     def _save_snapshot(self, epoch):
         if self.gpu_id != 0:
@@ -178,7 +178,7 @@ if __name__ == "__main__":
     parser.add_argument('--train_anns', default=None, type=str, help='Path to training annotations file')
     parser.add_argument('--output_model_pth', default='snapshot.pth', type=str, help='Where to save the trained model')
     parser.add_argument('--load_model_pth', default=None, type=str, help='Path to checkpoint to continue training from')
-    parser.add_argument('--log_interval', default=10, type=int, help='Log losses every N batches')
+    parser.add_argument('--log_interval', default=1, type=int, help='Log losses every N batches')
     args = parser.parse_args()
 
     main(args.save_every, args.total_epochs, args.batch_size, args.train_imgs, args.train_anns,
