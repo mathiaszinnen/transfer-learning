@@ -2,6 +2,7 @@
 Based on https://github.com/pytorch/examples/tree/main/distributed/ddp-tutorial-series
 """
 import math
+import wandb
 import sys
 
 import torch
@@ -44,6 +45,7 @@ class Trainer:
             save_every: int,
             save_model_pth: str,
             load_model_pth: str,
+            log_interval: int,
     ) -> None:
         if is_distributed():
             self.gpu_id = int(os.environ["LOCAL_RANK"])
@@ -55,6 +57,7 @@ class Trainer:
         self.save_every = save_every
         self.epochs_run = 0
         self.save_model_pth = save_model_pth
+        self.log_interval = log_interval
         if load_model_pth is not None:
             print(f"Loading snapshot from {load_model_pth}")
             self._load_snapshot(load_model_pth)
@@ -73,12 +76,13 @@ class Trainer:
         self.optimizer.zero_grad()
         loss_dict = self.model(source, targets)
         losses = sum(loss for loss in loss_dict.values())
+        loss_dict['all'] = losses
 
         self.optimizer.zero_grad()
         losses.backward()
         self.optimizer.step()
 
-        return loss_dict, losses
+        return loss_dict
 
     def _run_epoch(self, epoch):
         b_sz = len(next(iter(self.train_data))[0])
@@ -89,9 +93,10 @@ class Trainer:
             source = [img.to(self.gpu_id) for img in source]
             targets = [{k: v.to(self.gpu_id) for k, v in t.items()} for t in targets]
             loss_dict, losses = self._run_batch(source, targets)
-            if batch_n % 10 == 0:
+            if batch_n % self.log_interval == 0:
+                wandb.log(loss_dict)
                 print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {iteration} | "
-                      f"Loss: {losses:.4f} | "
+                      f"Loss: {loss_dict['all']:.4f} | "
                       f"CLS loss: {loss_dict['loss_classifier']:.4f} | "
                       f"BOX loss: {loss_dict['loss_box_reg']:.4f} | "
                       f"OBJ loss: {loss_dict['loss_objectness']:.4f} | "
@@ -142,14 +147,21 @@ def prepare_dataloader(dataset: Dataset, batch_size: int):
     )
 
 
-def main(save_every: int, total_epochs: int, batch_size: int, train_imgs, train_anns, output_model_pth, load_model_pth):
+def wandb_setup():
+    wandb.login()
+    wandb.init(project='Transfer-Learning')
+
+
+def main(save_every: int, total_epochs: int, batch_size: int, train_imgs, train_anns,
+         output_model_pth, load_model_pth, log_interval):
     if is_distributed():
         ddp_setup()
+    wandb_setup()
     dataset = get_dataset(train_imgs, train_anns)
     print(f"Dataset with {len(dataset)} instances loaded")
     model, optimizer = load_model(dataset.num_classes)
     train_data = prepare_dataloader(dataset, batch_size)
-    trainer = Trainer(model, train_data, optimizer, save_every, output_model_pth, load_model_pth)
+    trainer = Trainer(model, train_data, optimizer, save_every, output_model_pth, load_model_pth, log_interval)
     trainer.train(total_epochs)
     if is_distributed():
         destroy_process_group()
@@ -166,7 +178,8 @@ if __name__ == "__main__":
     parser.add_argument('--train_anns', default=None, type=str, help='Path to training annotations file')
     parser.add_argument('--output_model_pth', default='snapshot.pth', type=str, help='Where to save the trained model')
     parser.add_argument('--load_model_pth', default=None, type=str, help='Path to checkpoint to continue training from')
+    parser.add_argument('--log_interval', default=10, type=int, help='Log losses every N batches')
     args = parser.parse_args()
 
     main(args.save_every, args.total_epochs, args.batch_size, args.train_imgs, args.train_anns,
-         args.output_model_pth, args.load_model_pth)
+         args.output_model_pth, args.load_model_pth, args.log_interval)
