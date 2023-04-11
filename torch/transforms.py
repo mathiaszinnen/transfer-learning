@@ -20,13 +20,13 @@ import torch
 
 
 class RandomHorizontalFlip(T.RandomHorizontalFlip):
-    def forward(self, img, target):
+    def __call__(self, img, target):
         img = super().forward(img)
         return img, torch.clone(target)
 
 
 class RandomGrayscale(T.RandomGrayscale):
-    def forward(self, img, target):
+    def __call__(self, img, target):
         img = super().forward(img)
         return img, torch.clone(target)
 
