@@ -5,6 +5,15 @@ from torchvision.transforms import functional as F, transforms as T
 import torch
 
 
+class ApplyOnImage(nn.Module):
+    def __init__(self, transform):
+        super().__init__()
+        self.transform = transform
+
+    def __call__(self, image, target):
+        return self.transform(image), target
+
+
 class ConvertImageDtype(nn.Module):
     def __init__(self, dtype: torch.dtype) -> None:
         super().__init__()
@@ -89,6 +98,6 @@ def get_train_transforms(hflip_prob=.5, gs_prob=.1):
         PILToTensor(),
         ResizeImg(),
         ConvertImageDtype(torch.float),
-        T.RandomHorizontalFlip(p=hflip_prob),
-        T.RandomGrayscale(p=gs_prob)
+        ApplyOnImage(T.RandomHorizontalFlip(p=hflip_prob)),
+        ApplyOnImage(T.RandomGrayscale(p=gs_prob))
     ])
