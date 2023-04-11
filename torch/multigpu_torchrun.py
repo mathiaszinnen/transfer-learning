@@ -136,6 +136,7 @@ def main(save_every: int, total_epochs: int, batch_size: int, train_imgs, train_
     if is_distributed():
         ddp_setup()
     dataset = get_dataset(train_imgs, train_anns)
+    print(f"Dataset with {len(dataset)} instances loaded")
     model, optimizer = load_model(dataset.num_classes)
     train_data = prepare_dataloader(dataset, batch_size)
     trainer = Trainer(model, train_data, optimizer, save_every, output_model_pth, load_model_pth)
