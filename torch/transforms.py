@@ -111,10 +111,10 @@ class ConvertCOCOTargets(nn.Module):
 
 def get_train_transforms(hflip_prob=.5, gs_prob=.1):
     return Compose([
+        RandomHorizontalFlip(p=hflip_prob),
+        RandomGrayscale(p=gs_prob),
         ConvertCOCOTargets(),
         PILToTensor(),
         ResizeImg(),
         ConvertImageDtype(torch.float),
-        RandomHorizontalFlip(p=hflip_prob),
-        RandomGrayscale(p=gs_prob)
     ])
