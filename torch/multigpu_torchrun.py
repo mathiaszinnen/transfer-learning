@@ -1,20 +1,15 @@
 """
 Based on https://github.com/pytorch/examples/tree/main/distributed/ddp-tutorial-series
 """
-import math
 import wandb
-import sys
 
 import torch
-import torch.nn.functional as F
 import torchvision.models.detection
 from torch.utils.data import Dataset, DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 from data.odor_dataset import get_dataset
-from data.example_dataset import MyTrainDataset
 
-import torch.multiprocessing as mp
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import SequentialSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -22,7 +17,6 @@ from torch.distributed import init_process_group, destroy_process_group
 import os
 from os.path import splitext
 import transforms
-from tqdm import tqdm
 
 
 def ddp_setup():
@@ -47,6 +41,7 @@ class Trainer:
             save_model_pth: str,
             load_model_pth: str,
             log_interval: int,
+            is_wandb: bool,
     ) -> None:
         if is_distributed():
             self.gpu_id = int(os.environ["LOCAL_RANK"])
@@ -62,6 +57,7 @@ class Trainer:
         if load_model_pth is not None:
             print(f"Loading snapshot from {load_model_pth}")
             self._load_snapshot(load_model_pth)
+        self.is_wandb = is_wandb
 
         if is_distributed():
             self.model = DDP(self.model, device_ids=[self.gpu_id])
@@ -95,13 +91,15 @@ class Trainer:
             targets = [{k: v.to(self.gpu_id) for k, v in t.items()} for t in targets]
             loss_dict = self._run_batch(source, targets)
             if batch_n % self.log_interval == 0:
-                wandb.log(loss_dict)
-                # print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {iteration} | "
-                #       f"Loss: {loss_dict['all']:.4f} | "
-                #       f"CLS loss: {loss_dict['loss_classifier']:.4f} | "
-                #       f"BOX loss: {loss_dict['loss_box_reg']:.4f} | "
-                #       f"OBJ loss: {loss_dict['loss_objectness']:.4f} | "
-                #       f"RPN loss: {loss_dict['loss_rpn_box_reg']:.4f}")
+                if self.is_wandb:
+                    wandb.log(loss_dict)
+                else:
+                    print(f"[GPU{self.gpu_id}] Epoch {epoch} | Batchsize: {b_sz} | Steps: {iteration} | "
+                          f"Loss: {loss_dict['all']:.4f} | "
+                          f"CLS loss: {loss_dict['loss_classifier']:.4f} | "
+                          f"BOX loss: {loss_dict['loss_box_reg']:.4f} | "
+                          f"OBJ loss: {loss_dict['loss_objectness']:.4f} | "
+                          f"RPN loss: {loss_dict['loss_rpn_box_reg']:.4f}")
 
     def _save_snapshot(self, epoch):
         if self.gpu_id != 0:
@@ -123,11 +121,9 @@ class Trainer:
 
 
 def load_model(num_classes, lr):
-    # model = torch.nn.Linear(20, 1)  # load your model
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn_v2(weights="DEFAULT")
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
     return model, optimizer
@@ -154,16 +150,17 @@ def wandb_setup():
 
 
 def main(save_every: int, total_epochs: int, batch_size: int, train_imgs, train_anns,
-         output_model_pth, load_model_pth, log_interval, lr):
+         output_model_pth, load_model_pth, log_interval, lr, is_wandb):
     if is_distributed():
         ddp_setup()
-    wandb_setup()
+    if is_wandb:
+        wandb_setup()
     train_ts = transforms.get_train_transforms()
     dataset = get_dataset(train_imgs, train_anns, train_ts)
     print(f"Dataset with {len(dataset)} instances loaded")
     model, optimizer = load_model(dataset.num_classes, lr)
     train_data = prepare_dataloader(dataset, batch_size)
-    trainer = Trainer(model, train_data, optimizer, save_every, output_model_pth, load_model_pth, log_interval)
+    trainer = Trainer(model, train_data, optimizer, save_every, output_model_pth, load_model_pth, log_interval, is_wandb)
     trainer.train(total_epochs)
     if is_distributed():
         destroy_process_group()
@@ -182,7 +179,8 @@ if __name__ == "__main__":
     parser.add_argument('--load_model_pth', default=None, type=str, help='Path to checkpoint to continue training from')
     parser.add_argument('--log_interval', default=1, type=int, help='Log losses every N batches')
     parser.add_argument('--lr', default=1e-4, type=float, help='Initial learning rate.')
+    parser.add_argument('--wandb', action='store_true')
     args = parser.parse_args()
 
     main(args.save_every, args.total_epochs, args.batch_size, args.train_imgs, args.train_anns,
-         args.output_model_pth, args.load_model_pth, args.log_interval, args.lr)
+         args.output_model_pth, args.load_model_pth, args.log_interval, args.lr, args.wandb)
