@@ -35,6 +35,7 @@ class Trainer:
             print(f"Loading snapshot from {load_model_pth}")
             self._load_snapshot(load_model_pth)
         self.is_wandb = is_wandb
+        self.is_distributed = is_distributed
 
         if is_distributed:
             self.model = DDP(self.model, device_ids=[self.gpu_id])
