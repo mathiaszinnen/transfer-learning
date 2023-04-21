@@ -97,6 +97,7 @@ class Trainer:
 
     def train(self, max_epochs: int):
         for epoch in range(self.epochs_run + 1, max_epochs + 1):
+            self.evaluate()
             self._run_epoch(epoch)
             if epoch % self.save_every == 0:
                 self._save_snapshot(epoch)
@@ -118,7 +119,7 @@ class Trainer:
                 torch.cuda.synchronize()
 
             with torch.no_grad():
-                outputs = self.model(image)
+                outputs = self.model(image, target)
                 outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
 
             print(f"Validation loss: {outputs}")
