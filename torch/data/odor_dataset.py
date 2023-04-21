@@ -1,10 +1,12 @@
 import torchvision
+import pycocotools
 
 
 class CocoDataset(torchvision.datasets.CocoDetection):
     def __init__(self, img_folder, ann_file, transforms):
         super().__init__(img_folder, ann_file)
         self._transforms = transforms
+        self.coco = pycocotools.coco.COCO(ann_file)
 
     def __getitem__(self, idx):
         img, target = super().__getitem__(idx)

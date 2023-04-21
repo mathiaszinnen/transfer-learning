@@ -2,6 +2,9 @@ import os
 from os.path import splitext
 
 import torch
+from pycocotools.cocoeval import COCOeval
+from tqdm import tqdm
+
 import wandb
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -12,6 +15,7 @@ class Trainer:
             self,
             model: torch.nn.Module,
             train_data: DataLoader,
+            eval_data: DataLoader,
             optimizer: torch.optim.Optimizer,
             save_every: int,
             save_model_pth: str,
@@ -26,6 +30,7 @@ class Trainer:
             self.gpu_id = 0
         self.model = model.to(self.gpu_id)
         self.train_data = train_data
+        self.eval_data = eval_data
         self.optimizer = optimizer
         self.save_every = save_every
         self.epochs_run = 0
@@ -95,4 +100,37 @@ class Trainer:
             self._run_epoch(epoch)
             if epoch % self.save_every == 0:
                 self._save_snapshot(epoch)
+            self.evaluate()
         self._save_snapshot(epoch)
+
+    def evaluate(self, compute_map=False):
+        cpu_device = torch.device("cpu")
+        if compute_map:
+            self.model.eval()
+
+        # cocogt = self.eval_data.dataset.coco
+
+        preds = []
+        for image, target in tqdm(self.eval_data):
+            # images = list(img.to(cpu_device) for img in images)
+
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+
+            with torch.no_grad():
+                outputs = self.model(image)
+                outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
+
+            print(f"Validation loss: {outputs}")
+            preds.append(outputs)
+
+        # cocodt = None# todo: make coco format from outputs
+        #
+        # coco_eval = COCOeval(cocogt, cocodt, 'bbox')
+        # coco_eval.evaluate()
+        # coco_eval.accumulate()
+        # coco_eval.summarize()
+
+
+
+
