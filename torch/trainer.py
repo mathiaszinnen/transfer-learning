@@ -3,7 +3,6 @@ from os.path import splitext
 
 import numpy as np
 import torch
-import utils
 from pycocotools.cocoeval import COCOeval
 from tqdm import tqdm
 
