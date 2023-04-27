@@ -3,16 +3,11 @@ Based on https://github.com/pytorch/examples/tree/main/distributed/ddp-tutorial-
 """
 import wandb
 
-import torch
-import torchvision.models.detection
-from torch.utils.data import Dataset, DataLoader
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-
 from data.odor_dataset import get_dataset
+from utils import prepare_dataloader
+from utils import load_model
 from trainer import Trainer
 
-from torch.utils.data.distributed import DistributedSampler
-from torch.utils.data.sampler import SequentialSampler
 from torch.distributed import init_process_group, destroy_process_group
 import os
 import transforms
@@ -30,30 +25,6 @@ def is_distributed():
     return os.environ.get("MASTER_ADDR") is not None
 
 
-def load_model(num_classes, lr):
-    model = torchvision.models.detection.fasterrcnn_resnet50_fpn_v2(weights="DEFAULT")
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
-
-    return model, optimizer
-
-
-def prepare_dataloader(dataset: Dataset, batch_size: int):
-    if is_distributed():
-        sampler = DistributedSampler(dataset)
-    else:
-        sampler = SequentialSampler(dataset)
-    return DataLoader(
-        dataset,
-        batch_size=batch_size,
-        pin_memory=True,
-        shuffle=False,
-        sampler=sampler,
-        collate_fn=lambda batch: tuple(zip(*batch))
-    )
-
-
 def wandb_setup():
     wandb.login()
     wandb.init(project='Transfer-Learning')
@@ -66,12 +37,13 @@ def main(save_every: int, total_epochs: int, batch_size: int, train_imgs, train_
     if is_wandb:
         wandb_setup()
     train_ts = transforms.get_train_transforms()
+    valid_ts = transforms.get_test_transforms()
     train_ds = get_dataset(train_imgs, train_anns, train_ts)
-    valid_ds = get_dataset(train_imgs, valid_anns, train_ts)
+    valid_ds = get_dataset(train_imgs, valid_anns, valid_ts)
     print(f"Dataset with {len(train_ds)} instances loaded")
     model, optimizer = load_model(train_ds.num_classes, lr)
-    train_data = prepare_dataloader(train_ds, batch_size)
-    eval_data = prepare_dataloader(valid_ds, batch_size)
+    train_data = prepare_dataloader(train_ds, batch_size, is_distributed())
+    eval_data = prepare_dataloader(valid_ds, batch_size, is_distributed())
     trainer = Trainer(model, train_data, eval_data, optimizer, save_every,
                       output_model_pth, load_model_pth, log_interval,
                       is_wandb, is_distributed())

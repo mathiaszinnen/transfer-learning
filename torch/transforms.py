@@ -118,3 +118,12 @@ def get_train_transforms(hflip_prob=.5, gs_prob=.1):
         ResizeImg(),
         ConvertImageDtype(torch.float),
     ])
+
+
+def get_test_transforms():
+    return Compose([
+        ConvertCOCOTargets(),
+        PILToTensor(),
+        ResizeImg(),
+        ConvertImageDtype(torch.float),
+    ])

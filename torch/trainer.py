@@ -1,13 +1,11 @@
 import os
 from os.path import splitext
 
-import numpy as np
 import torch
-from pycocotools.cocoeval import COCOeval
 from tqdm import tqdm
 
 import wandb
-from torch.utils.data import DataLoader, Dataset, Subset, SequentialSampler
+from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 
@@ -102,14 +100,14 @@ class Trainer:
 
     def train(self, max_epochs: int):
         for epoch in range(self.epochs_run + 1, max_epochs + 1):
-            self.evaluate()
+            self.validate()
             self._run_epoch(epoch)
             if epoch % self.save_every == 0:
                 self._save_snapshot(epoch)
-            self.evaluate()
+            self.validate()
         self._save_snapshot(epoch)
 
-    def evaluate(self, compute_map=False):
+    def validate(self, compute_map=False):
         cpu_device = torch.device("cpu")
         if compute_map:
             self.model.eval()
@@ -147,3 +145,18 @@ class Trainer:
         # coco_eval.evaluate()
         # coco_eval.accumulate()
         # coco_eval.summarize()
+
+
+def get_test_trainer(model, test_data, ckpt_pth):
+    return Trainer(
+        model,
+        test_data,
+        test_data,
+        None,
+        0,
+        ckpt_pth,
+        ckpt_pth,
+        0,
+        False,
+        False
+    )
