@@ -69,7 +69,7 @@ class Trainer:
         b_sz = len(next(iter(self.train_data))[0])
         if self.is_distributed:
             self.train_data.sampler.set_epoch(epoch)
-        for batch_n, (source, targets) in enumerate(self.train_data):
+        for batch_n, (source, targets) in enumerate(tqdm(self.train_data)):
             iteration = batch_n * b_sz
             source = [img.to(self.gpu_id) for img in source]
             targets = [{k: v.to(self.gpu_id) for k, v in t.items()} for t in targets]
@@ -88,8 +88,12 @@ class Trainer:
     def _save_snapshot(self, epoch):
         if self.gpu_id != 0:
             return
+        if self.is_distributed:
+            state_dict = self.model.module.state_dict()
+        else:
+            state_dict = self.model.state_dict()
         snapshot = {
-            "MODEL_STATE": self.model.module.state_dict(),
+            "MODEL_STATE": state_dict,
             "EPOCHS_RUN": epoch,
         }
         save_pth = f'{splitext(self.save_model_pth)[0]}_{epoch}.pth'
