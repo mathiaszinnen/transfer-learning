@@ -134,7 +134,11 @@ class Trainer:
                 for o in outputs:
                     for k, v in o.items():
                         losses[k] += v
+                losses['all'] = sum(loss for loss in losses.values())
 
+        if self.is_wandb:
+            val_loss_dict = {f'val_{k}': v for k, v in losses.items()}
+            wandb.log(val_loss_dict)
         print(f"Validation loss: {losses}")
 
         # cocodt = None# todo: make coco format from outputs
