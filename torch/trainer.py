@@ -120,7 +120,6 @@ class Trainer:
             outputs.append(outputs_to_device(img_output, cpu_device))
         return outputs
 
-
     def validate(self, compute_map=False):
         cpu_device = torch.device("cpu")
         if compute_map:
