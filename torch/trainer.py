@@ -8,6 +8,8 @@ import wandb
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel as DDP
 
+from utils import outputs_to_device
+
 
 class Trainer:
     def __init__(
@@ -109,11 +111,13 @@ class Trainer:
 
     def predict(self):
         self.model.eval()
+        cpu_device = torch.device("cpu")
         outputs = []
         for images, _ in tqdm(self.eval_data):
             images = [img.to(self.gpu_id) for img in images]
-            outputs.append(self.model(images))
-            print('a')
+            with torch.no_grad():
+                img_output = (self.model(images))
+            outputs.append(outputs_to_device(img_output, cpu_device))
         return outputs
 
 

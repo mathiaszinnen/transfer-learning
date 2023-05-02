@@ -1,3 +1,5 @@
+from typing import List, Dict
+
 import torchvision
 from torch.utils.data import Dataset, DistributedSampler, SequentialSampler, DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
@@ -26,3 +28,9 @@ def load_model(num_classes, lr):
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
     return model, optimizer
+
+
+def outputs_to_device(outputs: List[Dict[str, torch.Tensor]], device: torch.device):
+    for dict_element in outputs:
+        for v in dict_element.values():
+            v.to(device)
