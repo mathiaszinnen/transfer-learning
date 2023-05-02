@@ -2,6 +2,7 @@ import os
 from os.path import splitext
 
 import torch
+from torchvision.ops import box_convert, box_area
 from tqdm import tqdm
 
 import wandb
@@ -112,13 +113,26 @@ class Trainer:
     def predict(self):
         self.model.eval()
         cpu_device = torch.device("cpu")
-        outputs = []
-        for images, _ in tqdm(self.eval_data):
+        annotations = []
+        for images, targets in tqdm(self.eval_data):
             images = [img.to(self.gpu_id) for img in images]
             with torch.no_grad():
-                img_output = (self.model(images))
-            outputs.append(outputs_to_device(img_output, cpu_device))
-        return outputs
+                preds = (self.model(images))
+            for pred, tgt in zip(preds, targets):
+                for box, label, score in zip(pred['boxes'], pred['labels'], pred['scores']):
+                    box = torch.unsqueeze(box, 0)
+                    area = box_area(box)
+                    coco_box = box_convert(box, 'xyxy', 'xywh').type(torch.int)
+                    ann = {
+                        'id': len(annotations) + 1,
+                        'image_id': tgt['image_id'].item(),
+                        'bbox': coco_box.tolist(),
+                        'area': area.item(),
+                        'category_id': label.item(),
+                        'score': score.item()
+                    }
+                    annotations.append(ann)
+        return annotations
 
     def validate(self, compute_map=False):
         cpu_device = torch.device("cpu")

@@ -34,3 +34,4 @@ def outputs_to_device(outputs: List[Dict[str, torch.Tensor]], device: torch.devi
     for dict_element in outputs:
         for v in dict_element.values():
             v.to(device)
+    return outputs
