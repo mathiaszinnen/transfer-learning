@@ -1,3 +1,5 @@
+import json
+import os
 from typing import List, Dict
 
 import torchvision
@@ -35,3 +37,14 @@ def outputs_to_device(outputs: List[Dict[str, torch.Tensor]], device: torch.devi
         for v in dict_element.values():
             v.to(device)
     return outputs
+
+
+def write_preds(pth, tgt_coco, preds):
+    coco_out = {
+        'images': list(tgt_coco.imgs.values()),
+        'annotations': preds,
+        'categories': list(tgt_coco.cats.values())
+    }
+    os.makedirs(os.path.dirname(pth), exist_ok=True)
+    with open(pth, 'w') as f:
+        json.dump(coco_out, f)
