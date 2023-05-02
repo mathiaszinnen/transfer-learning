@@ -5,12 +5,12 @@ from trainer import get_test_trainer
 
 
 def main(args):
-    test_ts = get_test_transforms()
+    test_ts = get_test_transforms(size=400)
     test_ds = get_dataset(args.test_imgs, args.test_anns, test_ts)
     test_data = prepare_dataloader(test_ds, 1, False)
     model, optimizer = load_model(test_ds.num_classes, 0.0001)
     trainer = get_test_trainer(model, test_data, args.load_model_path)
-    trainer.validate()
+    outputs = trainer.predict()
     print('a')
 
 

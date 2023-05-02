@@ -62,8 +62,12 @@ class PILToTensor(nn.Module):
 
 
 class ResizeImg(nn.Module):
+    def __init__(self, max_size):
+        self.max_size = max_size
+
+
     def __call__(self, image, target):
-        image = F.resize(image, [400, 400])
+        image = F.resize(image, [self.max_size, self.max_size])
         return image, target
 
 
@@ -109,21 +113,21 @@ class ConvertCOCOTargets(nn.Module):
         return image, target
 
 
-def get_train_transforms(hflip_prob=.5, gs_prob=.1):
+def get_train_transforms(hflip_prob=.5, gs_prob=.1, size=400):
     return Compose([
         RandomHorizontalFlip(p=hflip_prob),
         RandomGrayscale(p=gs_prob),
         ConvertCOCOTargets(),
         PILToTensor(),
-        ResizeImg(),
+        ResizeImg(size),
         ConvertImageDtype(torch.float),
     ])
 
 
-def get_test_transforms():
+def get_test_transforms(size=400):
     return Compose([
         ConvertCOCOTargets(),
         PILToTensor(),
-        ResizeImg(),
+        ResizeImg(size),
         ConvertImageDtype(torch.float),
     ])

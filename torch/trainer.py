@@ -107,6 +107,16 @@ class Trainer:
             self.validate()
         self._save_snapshot(epoch)
 
+    def predict(self):
+        self.model.eval()
+        outputs = []
+        for images, _ in tqdm(self.eval_data):
+            images = [img.to(self.gpu_id) for img in images]
+            outputs.append(self.model(images))
+            print('a')
+        return outputs
+
+
     def validate(self, compute_map=False):
         cpu_device = torch.device("cpu")
         if compute_map:
