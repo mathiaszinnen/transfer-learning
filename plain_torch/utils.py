@@ -45,6 +45,8 @@ def write_preds(pth, tgt_coco, preds):
         'annotations': preds,
         'categories': list(tgt_coco.cats.values())
     }
-    os.makedirs(os.path.dirname(pth), exist_ok=True)
+    dirname = os.path.dirname(pth)
+    if dirname != '':
+        os.makedirs(os.path.dirname(pth), exist_ok=True)
     with open(pth, 'w') as f:
         json.dump(coco_out, f)
