@@ -1,6 +1,6 @@
 
 from data.odor_dataset import get_dataset
-from plain_torch.model.custom_faster_rcnn import fasterrcnn_resnet50_fpn
+from model.custom_faster_rcnn import fasterrcnn_resnet50_fpn
 from transforms import get_test_transforms
 from utils import load_model, prepare_dataloader, write_preds, coco_eval
 from trainer import get_test_trainer
