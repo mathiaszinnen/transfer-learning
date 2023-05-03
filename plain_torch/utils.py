@@ -49,7 +49,8 @@ def coco_anns_from_preds(preds, targets, id_offset):
             id_offset += 1
             box = torch.unsqueeze(box, 0)
             area = box_area(box)
-            coco_box = box_convert(box, 'xyxy', 'xywh').type(torch.int)  # todo: do we have to sort out w, h = 0 here?
+            coco_box = box_convert(box, 'xyxy', 'xywh').type(torch.int).squeeze()
+            # todo: do we have to sort out w, h = 0 here?
             ann = {
                 'id': id_offset,
                 'image_id': tgt['image_id'].item(),
