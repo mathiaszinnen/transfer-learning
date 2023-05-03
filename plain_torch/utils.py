@@ -63,12 +63,16 @@ def coco_anns_from_preds(preds, targets, id_offset):
     return anns
 
 
-def write_preds(pth, tgt_coco, preds):
-    coco_out = {
-        'images': list(tgt_coco.imgs.values()),
-        'annotations': preds,
-        'categories': list(tgt_coco.cats.values())
+def wrap_coco_preds(dts: List, gts: COCO):
+    return {
+        'images': list(gts.imgs.values()),
+        'annotations': dts,
+        'categories': list(gts.cats.values())
     }
+
+
+def write_preds(pth, tgt_coco, preds):
+    coco_out = wrap_coco_preds(preds, tgt_coco)
     dirname = os.path.dirname(pth)
     if dirname != '':
         os.makedirs(os.path.dirname(pth), exist_ok=True)
@@ -78,10 +82,11 @@ def write_preds(pth, tgt_coco, preds):
 
 def coco_eval(preds: List, targets: COCO):
     tmp_path = 'tmp.json'
+    preds_coco = wrap_coco_preds(preds, targets)
     with open(tmp_path, 'w') as f:
-        json.dump(preds, f)
-    targets.loadRes(tmp_path)
-    cocoeval = COCOeval(cocoGt=targets, iouType='bbox')
+        json.dump(preds_coco, f)
+    dts = COCO(tmp_path)
+    cocoeval = COCOeval(cocoGt=targets, cocoDt=dts, iouType='bbox')
     cocoeval.evaluate()
     cocoeval.accumulate()
     cocoeval.summarize()
