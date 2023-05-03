@@ -4,7 +4,7 @@ from typing import List, Dict
 
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-from torch.utils.data import Dataset, DistributedSampler, SequentialSampler, DataLoader
+from torch.utils.data import Dataset, DistributedSampler, SequentialSampler, DataLoader, RandomSampler
 import torch
 from torchvision.ops import box_area, box_convert
 
@@ -13,14 +13,17 @@ from model.custom_faster_rcnn import fasterrcnn_resnet50_fpn
 
 def prepare_dataloader(dataset: Dataset, batch_size: int, is_distributed: bool, shuffle=True):
     if is_distributed:
-        sampler = DistributedSampler(dataset)
+        sampler = DistributedSampler(dataset, shuffle=shuffle)
     else:
-        sampler = SequentialSampler(dataset)
+        if shuffle:
+            sampler = RandomSampler(dataset)
+        else:
+            sampler = SequentialSampler(dataset)
     return DataLoader(
         dataset,
         batch_size=batch_size,
         pin_memory=True,
-        shuffle=shuffle,
+        # shuffle=False,
         sampler=sampler,
         collate_fn=lambda batch: tuple(zip(*batch))
     )
