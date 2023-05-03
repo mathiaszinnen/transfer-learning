@@ -2,14 +2,13 @@ import os
 from os.path import splitext
 
 import torch
-from torchvision.ops import box_convert, box_area
 from tqdm import tqdm
 
 import wandb
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from utils import outputs_to_device, coco_anns_from_preds
+from utils import coco_anns_from_preds
 
 
 class Trainer:

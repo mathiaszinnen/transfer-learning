@@ -1,7 +1,7 @@
 
 from data.odor_dataset import get_dataset
 from transforms import get_test_transforms
-from utils import load_model, prepare_dataloader, write_preds
+from utils import load_model, prepare_dataloader, write_preds, coco_eval
 from trainer import get_test_trainer
 
 
@@ -14,7 +14,7 @@ def main(args):
     outputs = trainer.predict()
     if args.preds_pth is not None:
         write_preds(args.preds_pth, test_ds.coco, outputs)
-
+    coco_eval(outputs, test_ds.coco)
 
     print('a')
 

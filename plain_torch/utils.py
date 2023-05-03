@@ -3,6 +3,8 @@ import os
 from typing import List, Dict
 
 import torchvision
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
 from torch.utils.data import Dataset, DistributedSampler, SequentialSampler, DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 import torch
@@ -60,7 +62,6 @@ def coco_anns_from_preds(preds, targets, id_offset):
     return anns
 
 
-
 def write_preds(pth, tgt_coco, preds):
     coco_out = {
         'images': list(tgt_coco.imgs.values()),
@@ -72,3 +73,15 @@ def write_preds(pth, tgt_coco, preds):
         os.makedirs(os.path.dirname(pth), exist_ok=True)
     with open(pth, 'w') as f:
         json.dump(coco_out, f)
+
+
+def coco_eval(preds: List, targets: COCO):
+    tmp_path = 'tmp.json'
+    with open(tmp_path, 'w') as f:
+        json.dump(preds, f)
+    targets.loadRes(tmp_path)
+    cocoeval = COCOeval(cocoGt=targets, iouType='bbox')
+    cocoeval.evaluate()
+    cocoeval.accumulate()
+    cocoeval.summarize()
+    os.remove(tmp_path)
