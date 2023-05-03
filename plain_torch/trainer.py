@@ -115,7 +115,7 @@ class Trainer:
         for images, targets in tqdm(self.eval_data):
             images = [img.to(self.gpu_id) for img in images]
             with torch.no_grad():
-                preds = (self.model(images))
+                preds, loss = self.model(images)
             img_anns = coco_anns_from_preds(preds, targets, len(annotations))
             annotations.extend(img_anns)
         return annotations
