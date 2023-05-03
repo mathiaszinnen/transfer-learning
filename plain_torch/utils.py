@@ -2,15 +2,13 @@ import json
 import os
 from typing import List, Dict
 
-import torchvision
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 from torch.utils.data import Dataset, DistributedSampler, SequentialSampler, DataLoader
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 import torch
 from torchvision.ops import box_area, box_convert
 
-from plain_torch.model.custom_faster_rcnn import fasterrcnn_resnet50_fpn
+from model.custom_faster_rcnn import fasterrcnn_resnet50_fpn
 
 
 def prepare_dataloader(dataset: Dataset, batch_size: int, is_distributed: bool):
