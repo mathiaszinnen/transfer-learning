@@ -11,7 +11,7 @@ from torchvision.ops import box_area, box_convert
 from model.custom_faster_rcnn import fasterrcnn_resnet50_fpn
 
 
-def prepare_dataloader(dataset: Dataset, batch_size: int, is_distributed: bool):
+def prepare_dataloader(dataset: Dataset, batch_size: int, is_distributed: bool, shuffle=True):
     if is_distributed:
         sampler = DistributedSampler(dataset)
     else:
@@ -20,7 +20,7 @@ def prepare_dataloader(dataset: Dataset, batch_size: int, is_distributed: bool):
         dataset,
         batch_size=batch_size,
         pin_memory=True,
-        shuffle=False,
+        shuffle=shuffle,
         sampler=sampler,
         collate_fn=lambda batch: tuple(zip(*batch))
     )

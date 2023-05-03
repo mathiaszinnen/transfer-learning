@@ -9,7 +9,7 @@ from trainer import get_test_trainer
 def main(args):
     test_ts = get_test_transforms(size=400)
     test_ds = get_dataset(args.test_imgs, args.test_anns, test_ts)
-    test_data = prepare_dataloader(test_ds, 1, False)
+    test_data = prepare_dataloader(test_ds, 1, False, shuffle=False)
     model = fasterrcnn_resnet50_fpn(test_ds.num_classes)
     trainer = get_test_trainer(model, test_data, args.load_model_path)
     outputs = trainer.predict()
