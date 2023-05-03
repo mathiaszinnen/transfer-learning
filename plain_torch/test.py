@@ -1,5 +1,6 @@
 
 from data.odor_dataset import get_dataset
+from plain_torch.model.custom_faster_rcnn import fasterrcnn_resnet50_fpn
 from transforms import get_test_transforms
 from utils import load_model, prepare_dataloader, write_preds, coco_eval
 from trainer import get_test_trainer
@@ -9,7 +10,7 @@ def main(args):
     test_ts = get_test_transforms(size=400)
     test_ds = get_dataset(args.test_imgs, args.test_anns, test_ts)
     test_data = prepare_dataloader(test_ds, 1, False)
-    model, optimizer = load_model(test_ds.num_classes, 0.0001)
+    model = fasterrcnn_resnet50_fpn(test_ds.num_classes)
     trainer = get_test_trainer(model, test_data, args.load_model_path)
     outputs = trainer.predict()
     if args.preds_pth is not None:

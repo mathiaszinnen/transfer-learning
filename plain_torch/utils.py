@@ -10,6 +10,8 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 import torch
 from torchvision.ops import box_area, box_convert
 
+from plain_torch.model.custom_faster_rcnn import fasterrcnn_resnet50_fpn
+
 
 def prepare_dataloader(dataset: Dataset, batch_size: int, is_distributed: bool):
     if is_distributed:
@@ -27,9 +29,10 @@ def prepare_dataloader(dataset: Dataset, batch_size: int, is_distributed: bool):
 
 
 def load_model(num_classes, lr):
-    model = torchvision.models.detection.fasterrcnn_resnet50_fpn_v2(weights="DEFAULT")
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+    # model = torchvision.models.detection.fasterrcnn_resnet50_fpn_v2(weights="DEFAULT")
+    # in_features = model.roi_heads.box_predictor.cls_score.in_features
+    # model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+    model = fasterrcnn_resnet50_fpn(num_classes=num_classes)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 
     return model, optimizer
