@@ -9,7 +9,7 @@ import wandb
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from utils import outputs_to_device
+from utils import outputs_to_device, coco_anns_from_preds
 
 
 class Trainer:
@@ -112,26 +112,13 @@ class Trainer:
 
     def predict(self):
         self.model.eval()
-        cpu_device = torch.device("cpu")
         annotations = []
         for images, targets in tqdm(self.eval_data):
             images = [img.to(self.gpu_id) for img in images]
             with torch.no_grad():
                 preds = (self.model(images))
-            for pred, tgt in zip(preds, targets):
-                for box, label, score in zip(pred['boxes'], pred['labels'], pred['scores']):
-                    box = torch.unsqueeze(box, 0)
-                    area = box_area(box)
-                    coco_box = box_convert(box, 'xyxy', 'xywh').type(torch.int)
-                    ann = {
-                        'id': len(annotations) + 1,
-                        'image_id': tgt['image_id'].item(),
-                        'bbox': coco_box.tolist(),
-                        'area': area.item(),
-                        'category_id': label.item(),
-                        'score': score.item()
-                    }
-                    annotations.append(ann)
+            img_anns = coco_anns_from_preds(preds, targets, len(annotations))
+            annotations.extend(img_anns)
         return annotations
 
     def validate(self, compute_map=False):

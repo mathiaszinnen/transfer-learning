@@ -6,6 +6,7 @@ import torchvision
 from torch.utils.data import Dataset, DistributedSampler, SequentialSampler, DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 import torch
+from torchvision.ops import box_area, box_convert
 
 
 def prepare_dataloader(dataset: Dataset, batch_size: int, is_distributed: bool):
@@ -37,6 +38,27 @@ def outputs_to_device(outputs: List[Dict[str, torch.Tensor]], device: torch.devi
         for v in dict_element.values():
             v.to(device)
     return outputs
+
+
+def coco_anns_from_preds(preds, targets, id_offset):
+    anns = []
+    for pred, tgt in zip(preds, targets):
+        for box, label, score in zip(pred['boxes'], pred['labels'], pred['scores']):
+            id_offset += 1
+            box = torch.unsqueeze(box, 0)
+            area = box_area(box)
+            coco_box = box_convert(box, 'xyxy', 'xywh').type(torch.int)  # todo: do we have to sort out w, h = 0 here?
+            ann = {
+                'id': id_offset,
+                'image_id': tgt['image_id'].item(),
+                'bbox': coco_box.tolist(),
+                'area': area.item(),
+                'category_id': label.item(),
+                'score': score.item()
+            }
+            anns.append(ann)
+    return anns
+
 
 
 def write_preds(pth, tgt_coco, preds):
