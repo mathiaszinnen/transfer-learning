@@ -1,5 +1,6 @@
 import torchvision
 import pycocotools
+from plain_torch.utils import show_debug_img
 
 
 class CocoDataset(torchvision.datasets.CocoDetection):
@@ -12,8 +13,10 @@ class CocoDataset(torchvision.datasets.CocoDetection):
         img, target = super().__getitem__(idx)
         image_id = self.ids[idx]
         target = dict(image_id=image_id, annotations=target)
+        #pre_tfm = show_debug_img(img, target) # for debugging
         if self._transforms is not None:
             img, target = self._transforms(img, target)
+        #post_tfm = show_debug_img(img, target) # for debugging
         return img, target
 
     @property

@@ -1,12 +1,15 @@
 import json
 import os
 from typing import List, Dict
+import cv2
 
+import PIL.Image
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 from torch.utils.data import Dataset, DistributedSampler, SequentialSampler, DataLoader, RandomSampler
 import torch
 from torchvision.ops import box_area, box_convert
+import numpy as np
 
 from model.custom_faster_rcnn import fasterrcnn_resnet50_fpn
 
@@ -95,3 +98,22 @@ def coco_eval(preds: List, targets: COCO):
     cocoeval.accumulate()
     cocoeval.summarize()
     os.remove(tmp_path)
+
+
+def draw_boxes(img, boxes):
+    for box in boxes:
+        x, y, w, h = list(map(int, box))
+        img = cv2.rectangle(img, (x, y), (x + w, y + h), color=(255, 0, 0), thickness=2)
+    return img
+
+
+def show_debug_img(img, target):
+    if isinstance(img, PIL.Image.Image):
+        npimg = np.array(img.convert('RGB'))
+        boxes = [ann['bbox'] for ann in target['annotations']]
+    elif isinstance(img, torch.Tensor):
+        npimg = np.moveaxis(img.numpy(), 0, 2)
+        boxes = target['boxes']
+    npimg = cv2.cvtColor(npimg, cv2.COLOR_BGR2RGB)
+    npimg = draw_boxes(npimg, boxes)
+    return npimg
