@@ -1,6 +1,6 @@
 import torchvision
 import pycocotools
-from plain_torch.utils import show_debug_img
+from utils import show_debug_img
 
 
 class CocoDataset(torchvision.datasets.CocoDetection):
