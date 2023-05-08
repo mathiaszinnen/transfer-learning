@@ -1,75 +1,15 @@
-"""
-Based on https://github.com/pytorch/vision/blob/292117405af46e1cdbf2f9ec6eb4752d276bbbb6/references/detection/transforms.py
-Wrapping all used transforms to have image and target parameters for now. There should be a more elegant solution though.
-"""
-
-from typing import Optional, Dict, Tuple
-
-from torch import nn, Tensor
-from torchvision.transforms import functional as F, transforms as T
+import albumentations as A
+import torch.nn as nn
 import torch
-
-#
-# class ApplyOnImage(nn.Module):
-#     def __init__(self, transform):
-#         super().__init__()
-#         self.transform = transform
-#
-#     def __call__(self, image, target):
-#         return self.transform(image), target
+import cv2
 
 
-
-class RandomHorizontalFlip(T.RandomHorizontalFlip):
-    def __call__(self, img, target):
-        img = super().forward(img)
-        return img, target
-
-
-class RandomGrayscale(T.RandomGrayscale):
-    def __call__(self, img, target):
-        img = super().forward(img)
-        return img, target
-
-
-class ConvertImageDtype(nn.Module):
-    def __init__(self, dtype: torch.dtype) -> None:
-        super().__init__()
-        self.dtype = dtype
-
-    def forward(
-            self, image: Tensor, target: Optional[Dict[str, Tensor]] = None
-    ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
-        image = F.convert_image_dtype(image, self.dtype)
-        return image, target
-
-
-class Compose:
-    def __init__(self, transforms):
-        self.transforms = transforms
-
-    def __call__(self, image, target):
-        for t in self.transforms:
-            image, target = t(image, target)
-        return image, target
-
-
-class PILToTensor(nn.Module):
-    def __call__(
-            self, image: Tensor, target: Optional[Dict[str, Tensor]] = None
-    ) -> Tuple[Tensor, Optional[Dict[str, Tensor]]]:
-        image = F.pil_to_tensor(image)
-        return image, target
-
-
-class ResizeImg(nn.Module):
-    def __init__(self, max_size):
-        self.max_size = max_size
-
-
-    def __call__(self, image, target):
-        image = F.resize(image, [self.max_size, self.max_size])
-        return image, target
+def get_train_transforms(size=400):
+    return A.Compose([
+        A.RandomCrop(width=size, height=size),
+        A.HorizontalFlip(p=0.5),
+        A.ToGray(p=0.5),
+    ], bbox_params=A.BboxParams(format='coco'))
 
 
 class ConvertCOCOTargets(nn.Module):
@@ -125,10 +65,10 @@ def get_train_transforms(hflip_prob=.5, gs_prob=.1, size=400):
     ])
 
 
-def get_test_transforms(size=400):
-    return Compose([
-        ConvertCOCOTargets(),
-        PILToTensor(),
-        ResizeImg(size),
-        ConvertImageDtype(torch.float),
-    ])
+# def get_test_transforms(size=400):
+#     return Compose([
+#         ConvertCOCOTargets(),
+#         PILToTensor(),
+#         ResizeImg(size),
+#         ConvertImageDtype(torch.float),
+#     ])
