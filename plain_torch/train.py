@@ -3,7 +3,7 @@ Based on https://github.com/pytorch/examples/tree/main/distributed/ddp-tutorial-
 """
 import wandb
 
-from data.odor_dataset import get_dataset
+from data.odor import get_dataset
 from utils import prepare_dataloader
 from utils import load_model
 from trainer import Trainer

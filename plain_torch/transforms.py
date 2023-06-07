@@ -1,4 +1,5 @@
 import albumentations as A
+from albumentations.pytorch import ToTensorV2
 import torch.nn as nn
 import torch
 import cv2
@@ -6,11 +7,21 @@ import cv2
 
 def get_train_transforms(size=400):
     return A.Compose([
-        A.RandomCrop(width=size, height=size),
+        # A.RandomCrop(width=size, height=size),
         A.HorizontalFlip(p=0.5),
         A.ToGray(p=0.5),
+        A.ToFloat(),
+        ToTensorV2()
     ], bbox_params=A.BboxParams(format='coco'))
 
+def get_test_transforms(size=400):
+    return A.Compose([
+        # A.RandomCrop(width=size, height=size),
+        A.HorizontalFlip(p=0.5),
+        A.ToGray(p=0.5),
+        A.ToFloat(),
+        ToTensorV2()
+    ], bbox_params=A.BboxParams(format='coco'))
 
 class ConvertCOCOTargets(nn.Module):
     """
@@ -54,15 +65,15 @@ class ConvertCOCOTargets(nn.Module):
         return image, target
 
 
-def get_train_transforms(hflip_prob=.5, gs_prob=.1, size=400):
-    return Compose([
-        RandomHorizontalFlip(p=hflip_prob),
-        RandomGrayscale(p=gs_prob),
-        ConvertCOCOTargets(),
-        PILToTensor(),
-        ResizeImg(size),
-        ConvertImageDtype(torch.float),
-    ])
+# def get_train_transforms(hflip_prob=.5, gs_prob=.1, size=400):
+#     return A.Compose([
+#         RandomHorizontalFlip(p=hflip_prob),
+#         RandomGrayscale(p=gs_prob),
+#         ConvertCOCOTargets(),
+#         PILToTensor(),
+#         ResizeImg(size),
+#         ConvertImageDtype(torch.float),
+#     ])
 
 
 # def get_test_transforms(size=400):
