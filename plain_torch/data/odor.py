@@ -13,11 +13,19 @@ class CocoDataset(torchvision.datasets.CocoDetection):
 
     def __getitem__(self, idx):
         img, targets = super().__getitem__(idx)
-        boxes = [t['bbox'] for t in targets]
+        w,h = img.size
         labels = [t['category_id'] for t in targets]
         boxes_with_labels = [t['bbox'] + [t['category_id']] for t in targets]
+        for box in boxes_with_labels:
+            if box[0] + box[1] > w or box[0] < 0:
+                print('box will break')
+                print(box)
+                print(w)
+            if box[2] + box[3] > h or box[2] < 0:
+                print('box will break')
+                print(box)
+                print(h)
         img = np.array(img)
-        image_id = self.ids[idx]
         #pre_tfm = show_debug_img(img, target) # for debugging
         if self._transforms is not None:
             tfmd = self._transforms(image=img, bboxes=boxes_with_labels)
