@@ -17,11 +17,11 @@ class CocoDataset(torchvision.datasets.CocoDetection):
         labels = [t['category_id'] for t in targets]
         boxes_with_labels = [t['bbox'] + [t['category_id']] for t in targets]
         for box in boxes_with_labels:
-            if box[0] + box[1] > w or box[0] < 0:
+            if box[0] + box[2] > w or box[0] < 0:
                 print('box will break')
                 print(box)
                 print(w)
-            if box[2] + box[3] > h or box[2] < 0:
+            if box[1] + box[3] > h or box[1] < 0:
                 print('box will break')
                 print(box)
                 print(h)
