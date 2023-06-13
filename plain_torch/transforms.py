@@ -8,11 +8,15 @@ import cv2
 def get_train_transforms(size=400):
     return A.Compose([
         # A.RandomCrop(width=size, height=size),
+        A.OneOf([
+            A.RandomResizedCrop(size, size),
+            A.RandomSizedBBoxSafeCrop(size, size)
+        ], p=0.5),
         A.HorizontalFlip(p=0.5),
         A.ToGray(p=0.5),
         A.ToFloat(),
         ToTensorV2()
-    ], bbox_params=A.BboxParams(format='coco'))
+    ], bbox_params=A.BboxParams(format='coco', min_area=32, min_visibility=0.3))
 
 def get_test_transforms(size=400):
     return A.Compose([
