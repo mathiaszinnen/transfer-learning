@@ -9,24 +9,13 @@ class CocoDataset(torchvision.datasets.CocoDetection):
     def __init__(self, img_folder, ann_file, transforms):
         super().__init__(img_folder, ann_file)
         self._transforms = transforms
-        self.coco = pycocotools.coco.COCO(ann_file)
+        # self.coco = pycocotools.coco.COCO(ann_file)
 
     def __getitem__(self, idx):
         img, targets = super().__getitem__(idx)
         w, h = img.size
         labels = [t['category_id'] for t in targets]
         boxes_with_labels = [t['bbox'] + [t['category_id']] for t in targets]
-        for box in boxes_with_labels:
-            if box[0] + box[2] > w or box[0] < 0:
-                print('box will break')
-                print(box)
-                print(w)
-                print(self.coco.imgs[idx+1])
-            if box[1] + box[3] > h or box[1] < 0:
-                print('box will break')
-                print(box)
-                print(h)
-                print(self.coco.imgs[idx+1])
         img = np.array(img)
         #pre_tfm = show_debug_img(img, target) # for debugging
         if self._transforms is not None:
@@ -37,11 +26,9 @@ class CocoDataset(torchvision.datasets.CocoDetection):
 
         boxes = torchvision.ops.box_convert(torch.tensor(boxes), in_fmt='xywh', out_fmt='xyxy')
         target = {
-            "image_id": torch.tensor(self.ids[idx]),
+            "image_id": torch.tensor(self.ids[idx+1]),
             "boxes": boxes,
             "labels": torch.tensor(labels, dtype=torch.int64),
-            # "area": [t['area'] for t in targets],
-            # "iscrowd": [t['iscrowd'] for t in targets]
         }
         #post_tfm = show_debug_img(img, target) # for debugging
         return img, target
