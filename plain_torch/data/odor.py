@@ -26,7 +26,7 @@ class CocoDataset(torchvision.datasets.CocoDetection):
 
         boxes = torchvision.ops.box_convert(torch.tensor(boxes), in_fmt='xywh', out_fmt='xyxy')
         target = {
-            "image_id": torch.tensor(self.ids[idx+1]),
+            "image_id": torch.tensor(self.ids[idx]),
             "boxes": boxes,
             "labels": torch.tensor(labels, dtype=torch.int64),
         }
@@ -40,3 +40,4 @@ class CocoDataset(torchvision.datasets.CocoDetection):
 
 def get_dataset(img_folder, ann_file, transforms):
     return CocoDataset(img_folder, ann_file, transforms=transforms)
+

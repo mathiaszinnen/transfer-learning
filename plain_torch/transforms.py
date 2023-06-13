@@ -17,8 +17,8 @@ def get_train_transforms(size=400):
 def get_test_transforms(size=400):
     return A.Compose([
         # A.RandomCrop(width=size, height=size),
-        A.HorizontalFlip(p=0.5),
-        A.ToGray(p=0.5),
+        # A.HorizontalFlip(p=0.5),
+        # A.ToGray(p=0.5),
         A.ToFloat(),
         ToTensorV2()
     ], bbox_params=A.BboxParams(format='coco'))
