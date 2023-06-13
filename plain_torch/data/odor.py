@@ -12,26 +12,30 @@ class CocoDataset(torchvision.datasets.CocoDetection):
         # self.coco = pycocotools.coco.COCO(ann_file)
 
     def __getitem__(self, idx):
-        img, targets = super().__getitem__(idx)
-        w, h = img.size
-        labels = [t['category_id'] for t in targets]
-        boxes_with_labels = [t['bbox'] + [t['category_id']] for t in targets]
-        img = np.array(img)
-        #pre_tfm = show_debug_img(img, target) # for debugging
-        if self._transforms is not None:
-            tfmd = self._transforms(image=img, bboxes=boxes_with_labels)
-            img = tfmd['image']
-            boxes = [t[:4] for t in tfmd['bboxes']]
-            labels = [t[4] for t in tfmd['bboxes']]
+        try:
+            img, targets = super().__getitem__(idx)
+            w, h = img.size
+            labels = [t['category_id'] for t in targets]
+            boxes_with_labels = [t['bbox'] + [t['category_id']] for t in targets]
+            img = np.array(img)
+            #pre_tfm = show_debug_img(img, target) # for debugging
+            if self._transforms is not None:
+                tfmd = self._transforms(image=img, bboxes=boxes_with_labels)
+                img = tfmd['image']
+                boxes = [t[:4] for t in tfmd['bboxes']]
+                labels = [t[4] for t in tfmd['bboxes']]
 
-        boxes = torchvision.ops.box_convert(torch.tensor(boxes), in_fmt='xywh', out_fmt='xyxy')
-        target = {
-            "image_id": torch.tensor(self.ids[idx]),
-            "boxes": boxes,
-            "labels": torch.tensor(labels, dtype=torch.int64),
-        }
-        #post_tfm = show_debug_img(img, target) # for debugging
-        return img, target
+            boxes = torchvision.ops.box_convert(torch.tensor(boxes), in_fmt='xywh', out_fmt='xyxy')
+            target = {
+                "image_id": torch.tensor(self.ids[idx]),
+                "boxes": boxes,
+                "labels": torch.tensor(labels, dtype=torch.int64),
+            }
+            #post_tfm = show_debug_img(img, target) # for debugging
+            return img, target
+        except Exception as e:
+            print(f'Could not load img {self.coco.imgs[idx]}')
+            raise e
 
     @property
     def num_classes(self):
