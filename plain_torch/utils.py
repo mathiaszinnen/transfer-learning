@@ -113,7 +113,12 @@ def show_debug_img(img, target):
         boxes = [ann['bbox'] for ann in target['annotations']]
     elif isinstance(img, torch.Tensor):
         npimg = np.moveaxis(img.numpy(), 0, 2)
-        boxes = target['boxes']
+        boxes = [box for box in target]
+    elif isinstance(img, np.ndarray):
+        boxes = [ann['bbox'] for ann in target]
+        npimg = img
+    else:
+        raise Exception
     npimg = cv2.cvtColor(npimg, cv2.COLOR_BGR2RGB)
     npimg = draw_boxes(npimg, boxes)
     return npimg
