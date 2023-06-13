@@ -102,7 +102,7 @@ class Trainer:
 
     def train(self, max_epochs: int):
         for epoch in range(self.epochs_run + 1, max_epochs + 1):
-            self.validate()
+            # self.validate()
             self._run_epoch(epoch)
             if epoch % self.save_every == 0:
                 self._save_snapshot(epoch)
