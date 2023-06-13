@@ -34,7 +34,8 @@ class CocoDataset(torchvision.datasets.CocoDetection):
             #post_tfm = show_debug_img(img, target) # for debugging
             return img, target
         except Exception as e:
-            print(f'Could not load img {self.coco.imgs[idx]}')
+            failing_img = self.coco.imgs[idx]
+            print(f'Could not load img: {failing_img}')
             raise e
 
     @property
