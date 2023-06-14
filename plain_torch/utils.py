@@ -2,7 +2,7 @@ import json
 import os
 from typing import List, Dict
 import cv2
-
+import albumentations as A
 import PIL.Image
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
@@ -100,14 +100,20 @@ def coco_eval(preds: List, targets: COCO):
     os.remove(tmp_path)
 
 
-def draw_boxes(img, boxes):
+def draw_boxes(img, boxes, mode='xywh'):
     for box in boxes:
         x, y, w, h = list(map(int, box))
-        img = cv2.rectangle(img, (x, y), (x + w, y + h), color=(255, 0, 0), thickness=2)
+        if mode == 'xyxy':
+            x2 = w
+            y2 = h
+        else:
+            x2 = x+w
+            y2 = y+h
+        img = cv2.rectangle(img, (x, y), (x2, y2), color=(255, 0, 0), thickness=2)
     return img
 
 
-def show_debug_img(img, target):
+def show_debug_img(img, target, box_mode = 'xywh'):
     if isinstance(img, PIL.Image.Image):
         npimg = np.array(img.convert('RGB'))
         boxes = [ann['bbox'] for ann in target['annotations']]
@@ -120,5 +126,6 @@ def show_debug_img(img, target):
     else:
         raise Exception
     npimg = cv2.cvtColor(npimg, cv2.COLOR_BGR2RGB)
-    npimg = draw_boxes(npimg, boxes)
+    npimg = draw_boxes(npimg, boxes, box_mode)
+    npimg = A.ToFloat().apply(npimg)
     return npimg
