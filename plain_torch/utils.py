@@ -101,6 +101,7 @@ def coco_eval(preds: List, targets: COCO):
 
 
 def draw_boxes(img, boxes, mode='xywh'):
+    img = np.ascontiguousarray(img)
     for box in boxes:
         x, y, w, h = list(map(int, box))
         if mode == 'xyxy':
@@ -113,7 +114,7 @@ def draw_boxes(img, boxes, mode='xywh'):
     return img
 
 
-def show_debug_img(img, target, box_mode = 'xywh'):
+def show_debug_img(img, target, box_mode='xywh'):
     if isinstance(img, PIL.Image.Image):
         npimg = np.array(img.convert('RGB'))
         boxes = [ann['bbox'] for ann in target['annotations']]

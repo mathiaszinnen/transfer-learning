@@ -8,7 +8,7 @@ import wandb
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from utils import coco_anns_from_preds
+from utils import coco_anns_from_preds, show_debug_img
 
 
 class Trainer:
@@ -59,7 +59,6 @@ class Trainer:
         losses = sum(loss for loss in loss_dict.values())
         loss_dict['all'] = losses
 
-        self.optimizer.zero_grad()
         losses.backward()
         self.optimizer.step()
 
@@ -71,6 +70,7 @@ class Trainer:
             self.train_data.sampler.set_epoch(epoch)
         for batch_n, (source, targets) in enumerate(tqdm(self.train_data)):
             iteration = batch_n * b_sz
+            # dbgimg = show_debug_img(source[0], targets[0]['boxes'], box_mode='xyxy')
             source = [img.to(self.gpu_id) for img in source]
             targets = [{k: v.to(self.gpu_id) for k, v in t.items()} for t in targets]
             loss_dict = self._run_batch(source, targets)

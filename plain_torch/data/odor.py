@@ -24,9 +24,8 @@ class CocoDataset(torchvision.datasets.CocoDetection):
                 boxes = [t[:4] for t in tfmd['bboxes']]
                 labels = [t[4] for t in tfmd['bboxes']]
 
-            # post_tfm = show_debug_img(img, boxes) # for debugging
             boxes = torchvision.ops.box_convert(torch.tensor(boxes), in_fmt='xywh', out_fmt='xyxy')
-            post_tfm = show_debug_img(img, boxes, 'xyxy') # for debugging
+            # post_tfm = show_debug_img(img, boxes, 'xyxy') # for debugging
             target = {
                 "image_id": torch.tensor(self.ids[idx]),
                 "boxes": boxes,
