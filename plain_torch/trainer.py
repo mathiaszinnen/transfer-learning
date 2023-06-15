@@ -118,7 +118,7 @@ class Trainer:
         for images, targets in tqdm(self.eval_data):
             images = [img.to(self.gpu_id) for img in images]
             with torch.no_grad():
-                preds, loss = self.model(images)
+                loss, preds = self.model(images)
             img_anns = coco_anns_from_preds(preds, targets, len(annotations))
             annotations.extend(img_anns)
         return annotations
@@ -168,6 +168,7 @@ def get_test_trainer(model, test_data, ckpt_pth):
         model,
         test_data,
         test_data,
+        None,
         None,
         0,
         ckpt_pth,
