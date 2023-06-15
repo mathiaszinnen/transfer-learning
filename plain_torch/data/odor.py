@@ -27,7 +27,7 @@ class CocoDataset(torchvision.datasets.CocoDetection):
             if len(boxes) > 0:
                 boxes = torchvision.ops.box_convert(torch.tensor(boxes), in_fmt='xywh', out_fmt='xyxy')
             else:
-                print('All boxes removed :(')
+                boxes = torch.empty(0)
             # post_tfm = show_debug_img(img, boxes, 'xyxy') # for debugging
             target = {
                 "image_id": torch.tensor(self.ids[idx]),
