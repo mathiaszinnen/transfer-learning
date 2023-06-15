@@ -41,10 +41,10 @@ def main(save_every: int, total_epochs: int, batch_size: int, train_imgs, train_
     train_ds = get_dataset(train_imgs, train_anns, train_ts)
     valid_ds = get_dataset(train_imgs, valid_anns, valid_ts)
     print(f"Dataset with {len(train_ds)} instances loaded")
-    model, optimizer = load_model(train_ds.num_classes, lr)
+    model, optimizer, scheduler = load_model(train_ds.num_classes, lr)
     train_data = prepare_dataloader(train_ds, batch_size, is_distributed())
     eval_data = prepare_dataloader(valid_ds, batch_size, is_distributed(), shuffle=False)
-    trainer = Trainer(model, train_data, eval_data, optimizer, save_every,
+    trainer = Trainer(model, train_data, eval_data, optimizer, scheduler, save_every,
                       output_model_pth, load_model_pth, log_interval,
                       is_wandb, is_distributed())
     trainer.train(total_epochs)

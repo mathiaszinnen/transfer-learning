@@ -18,6 +18,7 @@ class Trainer:
             train_data: DataLoader,
             eval_data: DataLoader,
             optimizer: torch.optim.Optimizer,
+            scheduler,
             save_every: int,
             save_model_pth: str,
             load_model_pth: str,
@@ -33,6 +34,7 @@ class Trainer:
         self.train_data = train_data
         self.eval_data = eval_data
         self.optimizer = optimizer
+        self.scheduler = scheduler
         self.save_every = save_every
         self.epochs_run = 0
         self.save_model_pth = save_model_pth
@@ -104,6 +106,7 @@ class Trainer:
         for epoch in range(self.epochs_run + 1, max_epochs + 1):
             # self.validate()
             self._run_epoch(epoch)
+            self.scheduler.step()
             if epoch % self.save_every == 0:
                 self._save_snapshot(epoch)
             self.validate()

@@ -32,14 +32,15 @@ def prepare_dataloader(dataset: Dataset, batch_size: int, is_distributed: bool, 
     )
 
 
-def load_model(num_classes, lr):
+def load_model(num_classes, lr=0.02):
     # model = torchvision.models.detection.fasterrcnn_resnet50_fpn_v2(weights="DEFAULT")
     # in_features = model.roi_heads.box_predictor.cls_score.in_features
     # model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
     model = fasterrcnn_resnet50_fpn(num_classes=num_classes)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
-    return model, optimizer
+    return model, optimizer, scheduler
 
 
 def outputs_to_device(outputs: List[Dict[str, torch.Tensor]], device: torch.device):
